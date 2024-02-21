@@ -1,0 +1,17 @@
+name: wrapped_korean_text
+description: Text widget that wraps Korean string without word-breaks. Well spaced Hangeul as it should be.
+version: 0.0.3
+homepage: https://github.com/studio-b-co-kr/flutter_plugins/tree/master/wrapped_korean_text
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
