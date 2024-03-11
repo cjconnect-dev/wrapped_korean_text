@@ -38,20 +38,41 @@ class _WrappedKoreanTextState extends State<WrappedKoreanText> {
   /// Indexes of special characters in original text
   List<Map<int, dynamic>> _specialCharacterIndexes = [];
 
-  List<List<Text>> _paragraphsList = [];
+  List<List<String>> _prevParagraphsList = [];
+  List<List<String>> _paragraphsList = [];
   int _startIndex = 0;
 
   @override
   void initState() {
+    initalizeValues();
     parceText();
     addParagraphs();
 
     super.initState();
   }
 
-  void parceText() {
-    _specialCharacterIndexes.clear();
+  @override
+  void didUpdateWidget(covariant WrappedKoreanText oldWidget) {
+    if (oldWidget.text != widget.text) {
+      initalizeValues();
+      parceText();
+      addParagraphs();
+      if (_prevParagraphsList != _paragraphsList) {
+        setState(() {});
+      }
+    }
+    super.didUpdateWidget(oldWidget);
+  }
 
+  void initalizeValues() {
+    _prevParagraphsList = _paragraphsList;
+
+    _specialCharacterIndexes.clear();
+    _paragraphsList.clear();
+    _startIndex = 0;
+  }
+
+  void parceText() {
     for (var i = 0; i < widget.text.length; i++) {
       for (var ii = 0; ii < _specialCharacters.length; ii++) {
         if (RegExp(_specialCharacters[ii]).hasMatch(widget.text[i])) {
@@ -66,23 +87,16 @@ class _WrappedKoreanTextState extends State<WrappedKoreanText> {
   /// Break text into paragraphs, keep line breaks in origianl places and
   /// remove excessive whitespaces
   void addParagraphs() {
-    for (Map index in _specialCharacterIndexes) {
+    _startIndex = 0;
+    for (final index in _specialCharacterIndexes) {
       String tempString = widget.text.substring(_startIndex, index.keys.single).trim();
 
       if (RegExp(r'\S+').hasMatch(tempString)) {
         List<String> tempList = tempString.replaceAll(RegExp(r'\s+'), ' ').split(' ');
-        _paragraphsList.add(tempList
-            .map((e) => Text(
-                  '$e ',
-                  overflow: TextOverflow.ellipsis,
-                  style: widget.style,
-                  textAlign: widget.textAlign,
-                  maxLines: widget.maxLines,
-                ))
-            .toList());
+        _paragraphsList.add(tempList.map((e) => '$e ').toList());
 
         if (index.values.single.isNotEmpty) {
-          _paragraphsList.add([Text('')]);
+          _paragraphsList.add(['']);
         }
       }
 
@@ -90,7 +104,7 @@ class _WrappedKoreanTextState extends State<WrappedKoreanText> {
     }
   }
 
-  Widget paragraph(List<Widget> list) {
+  Widget paragraph(List<String> list) {
     return Wrap(
       alignment: switch (widget.textAlign) {
         TextAlign.start => WrapAlignment.start,
@@ -98,7 +112,17 @@ class _WrappedKoreanTextState extends State<WrappedKoreanText> {
         TextAlign.end || TextAlign.right => WrapAlignment.end,
         _ => WrapAlignment.start,
       },
-      children: list,
+      children: list
+          .map(
+            (str) => Text(
+              str,
+              overflow: TextOverflow.ellipsis,
+              style: widget.style,
+              textAlign: widget.textAlign,
+              maxLines: widget.maxLines,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -110,7 +134,7 @@ class _WrappedKoreanTextState extends State<WrappedKoreanText> {
         TextAlign.end || TextAlign.right => CrossAxisAlignment.end,
         _ => CrossAxisAlignment.start,
       },
-      children: _paragraphsList.map((e) => paragraph(e)).toList(),
+      children: _paragraphsList.map(paragraph).toList(),
     );
   }
 
